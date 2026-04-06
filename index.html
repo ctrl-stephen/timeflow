@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="TimeFlow" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <title>TimeFlow</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">TF</div>
+      <div>
+        <div class="app-title">TimeFlow</div>
+        <div class="week-label" id="week-label">Week 14</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="session-clock" id="session-clock">00:00:00</div>
+    </div>
+  </header>
+
+  <!-- Session bar -->
+  <div class="session-bar">
+    <div class="session-info">
+      <span class="session-dot" id="session-dot"></span>
+      <span class="session-status" id="session-status">Ready to start</span>
+    </div>
+    <div class="session-actions">
+      <button class="btn-session" id="toggle-btn" onclick="toggleSession()">Start</button>
+      <button class="btn-reset" onclick="confirmReset()">Reset</button>
+    </div>
+  </div>
+
+  <!-- Nav tabs -->
+  <nav class="nav">
+    <button class="nav-tab active" data-tab="tracker" onclick="showTab('tracker',this)">Track</button>
+    <button class="nav-tab" data-tab="summary" onclick="showTab('summary',this)">Summary</button>
+    <button class="nav-tab" data-tab="history" onclick="showTab('history',this)">History</button>
+    <button class="nav-tab" data-tab="settings" onclick="showTab('settings',this)">Activities</button>
+  </nav>
+
+  <!-- TRACKER TAB -->
+  <div class="tab-content active" id="tab-tracker">
+    <div class="current-activity-card" id="current-card">
+      <div class="current-label">No activity selected</div>
+      <div class="current-timer" id="current-timer">—</div>
+      <div class="current-hint">Select an activity below to begin</div>
+    </div>
+    <div class="activity-grid" id="activity-grid"></div>
+  </div>
+
+  <!-- SUMMARY TAB -->
+  <div class="tab-content" id="tab-summary">
+    <div class="summary-header">
+      <div class="summary-title">Today's session</div>
+      <div class="summary-total" id="summary-total">0h 0m tracked</div>
+    </div>
+    <div id="summary-list"></div>
+    <div class="week-summary-header">
+      <div class="summary-title">This week</div>
+    </div>
+    <div id="week-list"></div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div class="tab-content" id="tab-history">
+    <div class="history-header">
+      <div class="summary-title">Session log</div>
+    </div>
+    <div id="history-list"></div>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <div class="tab-content" id="tab-settings">
+    <div class="settings-section-title">Your activities</div>
+    <div id="settings-list"></div>
+    <div class="add-form">
+      <div class="add-form-title">Add new activity</div>
+      <input class="text-input" id="new-name" placeholder="Activity name" />
+      <div class="input-row">
+        <div class="input-group">
+          <label class="input-label">Weekly target (hrs)</label>
+          <input class="text-input num-input" id="new-target" type="number" min="0" max="40" placeholder="0" />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Colour</label>
+          <div class="color-picker" id="color-picker"></div>
+        </div>
+      </div>
+      <button class="btn-add" onclick="addActivity()">Add activity</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Edit modal -->
+<div class="modal-overlay" id="edit-modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-title">Edit activity</div>
+    <input class="text-input" id="edit-name" placeholder="Activity name" />
+    <div class="input-row">
+      <div class="input-group">
+        <label class="input-label">Weekly target (hrs)</label>
+        <input class="text-input num-input" id="edit-target" type="number" min="0" max="40" />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Colour</label>
+        <div class="color-picker" id="edit-color-picker"></div>
+      </div>
+    </div>
+    <div class="modal-toggle-row">
+      <span class="input-label">Show in tracker</span>
+      <label class="toggle">
+        <input type="checkbox" id="edit-active" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeEditModal()">Cancel</button>
+      <button class="btn-modal-save" onclick="saveEdit()">Save</button>
+    </div>
+    <button class="btn-delete" onclick="deleteActivity()">Delete activity</button>
+  </div>
+</div>
+
+<!-- Confirm modal -->
+<div class="modal-overlay" id="confirm-modal" onclick="closeConfirm(event)">
+  <div class="modal">
+    <div class="modal-title" id="confirm-title">Reset session?</div>
+    <div class="confirm-msg" id="confirm-msg">This will clear the current session timer and log. Historical data is kept.</div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-modal-save" id="confirm-ok" onclick="">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
