@@ -144,7 +144,8 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);min-height:100dv
     <button class="ntab" data-tab="summary">Summary</button>
     <button class="ntab" data-tab="history">History</button>
     <button class="ntab" data-tab="settings">Activities</button>
-  </nav>  <div class="tab act" id="tab-tracker">
+  </nav>
+  <div class="tab act" id="tab-tracker">
     <div class="cur-card" id="cur-card">
       <div class="cur-lbl">No activity selected</div>
       <div class="cur-tmr" id="cur-tmr" style="color:var(--tx3)">—</div>
@@ -187,23 +188,11 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);min-height:100dv
     <div class="mttl">Edit activity</div>
     <input class="ti" id="edit-name" placeholder="Activity name"/>
     <div class="irow">
-      <div class="igrp">
-        <label class="ilbl">Weekly target (hrs)</label>
-        <input class="ti" id="edit-tgt" type="number" min="0" max="40" style="margin-bottom:0"/>
-      </div>
-      <div class="igrp">
-        <label class="ilbl">Colour</label>
-        <div class="cpick" id="cpick-edit"></div>
-      </div>
+      <div class="igrp"><label class="ilbl">Weekly target (hrs)</label><input class="ti" id="edit-tgt" type="number" min="0" max="40" style="margin-bottom:0"/></div>
+      <div class="igrp"><label class="ilbl">Colour</label><div class="cpick" id="cpick-edit"></div></div>
     </div>
-    <div class="mtr">
-      <span class="ilbl" style="margin-bottom:0">Show in tracker</span>
-      <label class="tog"><input type="checkbox" id="edit-active"/><span class="tog-sl"></span></label>
-    </div>
-    <div class="macts">
-      <button class="btn-mc" id="btn-ec">Cancel</button>
-      <button class="btn-ms" id="btn-es">Save</button>
-    </div>
+    <div class="mtr"><span class="ilbl" style="margin-bottom:0">Show in tracker</span><label class="tog"><input type="checkbox" id="edit-active"/><span class="tog-sl"></span></label></div>
+    <div class="macts"><button class="btn-mc" id="btn-ec">Cancel</button><button class="btn-ms" id="btn-es">Save</button></div>
     <button class="btn-del" id="btn-ed">Delete activity</button>
   </div>
 </div>
@@ -211,16 +200,12 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);min-height:100dv
   <div class="modal">
     <div class="mttl" id="conf-ttl">Confirm</div>
     <div class="cmsg" id="conf-msg"></div>
-    <div class="macts">
-      <button class="btn-mc" id="btn-cc">Cancel</button>
-      <button class="btn-ms" id="btn-co">Confirm</button>
-    </div>
+    <div class="macts"><button class="btn-mc" id="btn-cc">Cancel</button><button class="btn-ms" id="btn-co">Confirm</button></div>
   </div>
 </div>
 <script>
 var COLORS=['#7c6af7','#34d399','#f87171','#fbbf24','#60a5fa','#f472b6','#a78bfa','#2dd4bf','#fb923c','#a3e635'];
 var S={activities:[],sessions:[],cs:{running:false,startTs:null,elapsed:0,splits:[],actId:null,splitStart:null},nextId:1,newColor:COLORS[0],editColor:COLORS[0],editingId:null};
-
 function save(){try{localStorage.setItem('tf3',JSON.stringify(S));}catch(e){}}
 function load(){
   try{
@@ -228,14 +213,9 @@ function load(){
     if(!r)return;
     S=JSON.parse(r);
     if(!S.cs)S.cs={running:false,startTs:null,elapsed:0,splits:[],actId:null,splitStart:null};
-    if(S.cs.running){
-      if(S.cs.startTs)S.cs.elapsed+=Date.now()-S.cs.startTs;
-      if(S.cs.actId&&S.cs.splitStart)finishSplit(true);
-      S.cs.running=false;S.cs.startTs=null;
-    }
+    if(S.cs.running){if(S.cs.startTs)S.cs.elapsed+=Date.now()-S.cs.startTs;if(S.cs.actId&&S.cs.splitStart)finishSplit(true);S.cs.running=false;S.cs.startTs=null;}
   }catch(e){}
 }
-
 function pad(n){return String(Math.floor(n)).padStart(2,'0');}
 function fmtMs(ms){var s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;return h>0?pad(h)+':'+pad(m)+':'+pad(sc):pad(m)+':'+pad(sc);}
 function fmtHM(ms){var h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000);return h>0&&m>0?h+'h '+m+'m':h>0?h+'h':m+'m';}
@@ -245,55 +225,14 @@ function wkNum(d){var dt=new Date(d);dt.setHours(0,0,0,0);dt.setDate(dt.getDate(
 function byId(id){for(var i=0;i<S.activities.length;i++)if(S.activities[i].id===id)return S.activities[i];return null;}
 function liveEl(){return S.cs.running?S.cs.elapsed+(Date.now()-S.cs.startTs):S.cs.elapsed;}
 function liveSp(){return S.cs.running&&S.cs.splitStart?Date.now()-S.cs.splitStart:0;}
-function todayTot(){
-  var t={};
-  S.cs.splits.forEach(function(sp){t[sp.actId]=(t[sp.actId]||0)+sp.duration;});
-  if(S.cs.actId&&S.cs.running)t[S.cs.actId]=(t[S.cs.actId]||0)+liveSp();
-  return t;
-}
-function weekTot(){
-  var t={},now=new Date(),wk=wkNum(now),yr=now.getFullYear();
-  S.sessions.forEach(function(sess){
-    var d=new Date(sess.date);
-    if(wkNum(d)===wk&&d.getFullYear()===yr){
-      sess.splits.forEach(function(sp){t[sp.actId]=(t[sp.actId]||0)+sp.duration;if(!t['n'+sp.actId]){t['n'+sp.actId]=sp.name;t['c'+sp.actId]=sp.color;}});
-    }
-  });
-  var td=todayTot();
-  Object.keys(td).forEach(function(id){t[id]=(t[id]||0)+td[id];var a=byId(Number(id));if(a&&!t['n'+id]){t['n'+id]=a.name;t['c'+id]=a.color;}});
-  return t;
-}
-
-function toggleSession(){
-  if(!S.cs.running){S.cs.running=true;S.cs.startTs=Date.now();if(S.cs.actId&&!S.cs.splitStart)S.cs.splitStart=Date.now();}
-  else{S.cs.elapsed+=Date.now()-S.cs.startTs;S.cs.running=false;S.cs.startTs=null;if(S.cs.actId&&S.cs.splitStart)finishSplit(true);}
-  save();renderAll();
-}
-function finishSplit(clr){
-  if(!S.cs.actId||!S.cs.splitStart)return;
-  var dur=Date.now()-S.cs.splitStart;
-  if(dur>=1000){var a=byId(S.cs.actId);S.cs.splits.push({actId:S.cs.actId,name:a?a.name:'Unknown',color:a?a.color:'#888',start:S.cs.splitStart,duration:dur});}
-  S.cs.splitStart=null;if(clr)S.cs.actId=null;
-}
-function selectAct(id){
-  if(!S.cs.running)return;
-  if(S.cs.actId===id)return;
-  if(S.cs.actId&&S.cs.splitStart)finishSplit(false);
-  S.cs.actId=id;S.cs.splitStart=Date.now();save();renderTracker();
-}
-function commitSession(){
-  if(S.cs.splits.length===0&&S.cs.elapsed===0)return;
-  S.sessions.push({date:Date.now(),duration:S.cs.elapsed,splits:S.cs.splits.slice()});
-  S.cs={running:false,startTs:null,elapsed:0,splits:[],actId:null,splitStart:null};
-}
-function doReset(){
-  if(S.cs.running){S.cs.elapsed+=Date.now()-S.cs.startTs;S.cs.running=false;S.cs.startTs=null;if(S.cs.actId&&S.cs.splitStart)finishSplit(true);}
-  commitSession();save();renderAll();
-}
-function addActivity(){
-  var name=document.getElementById('new-name').value.trim();
-  if(!name){document.getElementById('new-name').focus();return;}
-  var tgt=parseFloat(document.getElementById('new-tgt').value)||0;
+function todayTot(){var t={};S.cs.splits.forEach(function(sp){t[sp.actId]=(t[sp.actId]||0)+sp.duration;});if(S.cs.actId&&S.cs.running)t[S.cs.actId]=(t[S.cs.actId]||0)+liveSp();return t;}
+function weekTot(){var t={},now=new Date(),wk=wkNum(now),yr=now.getFullYear();S.sessions.forEach(function(sess){var d=new Date(sess.date);if(wkNum(d)===wk&&d.getFullYear()===yr){sess.splits.forEach(function(sp){t[sp.actId]=(t[sp.actId]||0)+sp.duration;if(!t['n'+sp.actId]){t['n'+sp.actId]=sp.name;t['c'+sp.actId]=sp.color;}});}});var td=todayTot();Object.keys(td).forEach(function(id){t[id]=(t[id]||0)+td[id];var a=byId(Number(id));if(a&&!t['n'+id]){t['n'+id]=a.name;t['c'+id]=a.color;}});return t;}
+function toggleSession(){if(!S.cs.running){S.cs.running=true;S.cs.startTs=Date.now();if(S.cs.actId&&!S.cs.splitStart)S.cs.splitStart=Date.now();}else{S.cs.elapsed+=Date.now()-S.cs.startTs;S.cs.running=false;S.cs.startTs=null;if(S.cs.actId&&S.cs.splitStart)finishSplit(true);}save();renderAll();}
+function finishSplit(clr){if(!S.cs.actId||!S.cs.splitStart)return;var dur=Date.now()-S.cs.splitStart;if(dur>=1000){var a=byId(S.cs.actId);S.cs.splits.push({actId:S.cs.actId,name:a?a.name:'Unknown',color:a?a.color:'#888',start:S.cs.splitStart,duration:dur});}S.cs.splitStart=null;if(clr)S.cs.actId=null;}
+function selectAct(id){if(!S.cs.running)return;if(S.cs.actId===id)return;if(S.cs.actId&&S.cs.splitStart)finishSplit(false);S.cs.actId=id;S.cs.splitStart=Date.now();save();renderTracker();}
+function commitSession(){if(S.cs.splits.length===0&&S.cs.elapsed===0)return;S.sessions.push({date:Date.now(),duration:S.cs.elapsed,splits:S.cs.splits.slice()});S.cs={running:false,startTs:null,elapsed:0,splits:[],actId:null,splitStart:null};}
+function doReset(){if(S.cs.running){S.cs.elapsed+=Date.now()-S.cs.startTs;S.cs.running=false;S.cs.startTs=null;if(S.cs.actId&&S.cs.splitStart)finishSplit(true);}commitSession();save();renderAll();}
+function addActivity(){var name=document.getElementById('new-name').value.trim();if(!name){document.getElementById('new-name').focus();return;}var tgt=parseFloat(document.getElementById('new-tgt').value)||0;S.activities.push({id:S.nextId++,name:name,color:S.newColor,target:tgt,active:true});document.getElementById('new-name').value='';document.getElementById('new-tgt').value='';save();renderAll();} tgt=parseFloat(document.getElementById('new-tgt').value)||0;
   S.activities.push({id:S.nextId++,name:name,color:S.newColor,target:tgt,active:true});
   document.getElementById('new-name').value='';document.getElementById('new-tgt').value='';
   save();renderAll();
@@ -326,7 +265,7 @@ function delActivity(){
 }
 function renderCpick(cid,key,sel){
   document.getElementById(cid).innerHTML=COLORS.map(function(c){
-    return '<div class="csw'+(c===sel?' sel':''+'" style="background:'+c+'" data-c="'+c+'" data-k="'+key+'" data-cid="'+cid+'"></div>';
+    return '<div class="csw'+(c===sel?' sel':'')+'" style="background:'+c+'" data-c="'+c+'" data-k="'+key+'" data-cid="'+cid+'"></div>';
   }).join('');
 }
 function closeEdit(){document.getElementById('edit-modal').classList.remove('open');S.editingId=null;}
@@ -334,6 +273,7 @@ var confCb=null;
 function openConf(ttl,msg,cb){document.getElementById('conf-ttl').textContent=ttl;document.getElementById('conf-msg').textContent=msg;confCb=cb;document.getElementById('conf-modal').classList.add('open');}
 function closeConf(){document.getElementById('conf-modal').classList.remove('open');}
 
+// All event listeners — no onclick attributes
 document.getElementById('btn-go').addEventListener('click',toggleSession);
 document.getElementById('btn-rst').addEventListener('click',function(){openConf('Reset session?','Saves current session to history and resets the timer.',doReset);});
 document.getElementById('btn-add-act').addEventListener('click',addActivity);
@@ -347,7 +287,7 @@ document.getElementById('edit-modal').addEventListener('click',function(e){if(e.
 document.getElementById('conf-modal').addEventListener('click',function(e){if(e.target===this)closeConf();});
 document.addEventListener('click',function(e){
   var sw=e.target.closest('.csw');
-  if(sw){S[sw.dataset.k]=sw.dataset.c;renderCpick(sw.dataset.cid,sw.dataset.k,sw.dataset.c);return;}
+  if(sw){S[sw.dataset.k]=sw.dataset.c;renderCpich(sw.dataset.cid,sw.dataset.k,sw.dataset.c);return;}
   var tile=e.target.closest('.atile');
   if(tile){selectAct(parseInt(tile.dataset.id));return;}
   if(e.target.classList.contains('btn-ed-tile')){openEdit(parseInt(e.target.dataset.id));}
@@ -389,12 +329,7 @@ function renderTracker(){
   var tots=todayTot(),acts=S.activities.filter(function(x){return x.active!==false;}),grid=document.getElementById('agrid');
   grid.innerHTML=acts.map(function(act){
     var isOn=act.id===S.cs.actId&&S.cs.running,dur=tots[act.id]||0;
-    return '<div class="atile'+(isOn?' on':''+'" data-id="'+act.id+'" style="'+(isOn?'border-color:'+act.color+';':'')+'">'
-      +'<div class="tbar" style="background:'+act.color+';opacity:'+(isOn?1:.5)+'"></div>'
-      +'<div class="tnm">'+act.name+'</div>'
-      +(isOn?'<div class="tlive"><div class="tldot" style="background:'+act.color+'"></div><div class="tllbl" style="color:'+act.color+'">Live</div></div>'
-             :'<div class="ttm">'+(dur>0?fmtMs(dur):'—')+'</div>')
-      +'</div>';
+    return '<div class="atile'+(isOn?' on':'')+'" data-id="'+act.id+'" style="'+(isOn?'border-color:'+act.color+';':'')+'">'+'<div class="tbar" style="background:'+act.color+';opacity:'+(isOn?1:.5)+'"></div>'+'<div class="tnm">'+act.name+'</div>'+(isOn?'<div class="tlive"><div class="tldot" style="background:'+act.color+'"></div><div class="tllbl" style="color:'+act.color+'">Live</div></div>':'<div class="ttm">'+(dur>0?fmtMs(dur):'—')+'</div>')+'</div>';
   }).join('');
 }
 function renderSummary(){
@@ -421,8 +356,7 @@ function renderHistory(){
   sess.forEach(function(s){s.splits.forEach(function(sp){all.push(Object.assign({},sp,{sessDate:s.date}));});});
   if(all.length===0){list.innerHTML='<div class="empty">No history yet.<br>Complete a session to see it here.</div>';return;}
   var byDay={};
-  all.forEach(function(sp){var d=new Date(sp.start||sp.sessDate),k=d.toDateString();if(!byDay[k]){byDay[k]={label:fmtDay(d.getTime()),ts:d.getTime(),sps:[]};}
-  byDay[k].sps.push(sp);});
+  all.forEach(function(sp){var d=new Date(sp.start||sp.sessDate),k=d.toDateString();if(!byDay[k]){byDay[k]={label:fmtDay(d.getTime()),ts:d.getTime(),sps:[]};}byDay[k].sps.push(sp);});
   list.innerHTML=Object.values(byDay).sort(function(a,b){return b.ts-a.ts;}).map(function(day){
     return '<div class="hday"><div class="hday-l">'+day.label+'</div>'+day.sps.slice().reverse().map(function(sp){
       return '<div class="hsp"><div class="hsl"><div class="hsdot" style="background:'+sp.color+'"></div><div><div class="hsnm">'+sp.name+'</div>'+(sp.start?'<div class="hstl">'+fmtT(sp.start)+'</div>':'')+'</div></div><div class="hsdur">'+fmtMs(sp.duration)+'</div></div>';
@@ -437,11 +371,13 @@ function renderSettings(){
   }).join('');
 }
 
+// Seed defaults
 function seed(){
   if(S.activities.length>0)return;
   [{name:'Meetings',color:COLORS[0],target:8},{name:'Project delivery',color:COLORS[1],target:10},{name:'Emails & admin',color:COLORS[2],target:4},{name:'Strategic work',color:COLORS[3],target:6},{name:'1:1s & coaching',color:COLORS[4],target:3}].forEach(function(d){S.activities.push({id:S.nextId++,name:d.name,color:d.color,target:d.target,active:true});});
 }
 
+// Tick
 setInterval(function(){if(S.cs.running){renderHeader();renderTracker();}},1000);
 
 load();seed();renderAll();
