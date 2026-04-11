@@ -473,7 +473,7 @@ function openTaskPicker(actId){
   var list=document.getElementById('tpick-list');
   var items=a.tasks.map(function(tk){
     var isSel=S.cs.actId===actId&&S.cs.taskId===tk.id;
-    return '<div class="tpick-item'+(isSel?' sel':'')+'" data-act="'+actId+'" data-task="'+tk.id+'">'+tk.name+(isSel?'<span style="color:var(--ac);font-size:12px">●</span>':'')+'</div>';
+    return '<div class="tpick-item'+(isSel=' sel':'')+'" data-act="'+actId+'" data-task="'+tk.id+'">'+tk.name+(isSel?'<span style="color:var(--ac);font-size:12px">●</span>':'')+'</div>';
   });
   // Add "No specific task" option
   var noTask=S.cs.actId===actId&&!S.cs.taskId;
