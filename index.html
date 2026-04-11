@@ -433,8 +433,11 @@ function finishSplit(clr){
   if(clr){S.cs.actId=null;S.cs.taskId=null;}
 }
 function selectAct(id){
-  if(!S.cs.running)return;
   var a=byId(id);if(!a)return;
+  // Auto-start session if not running
+  if(!S.cs.running){
+    S.cs.running=true;S.cs.startTs=Date.now();
+  }
   // If has tasks, open task picker
   if(a.tasks&&a.tasks.length>0){
     openTaskPicker(id);return;
@@ -443,10 +446,10 @@ function selectAct(id){
   if(S.cs.actId===id&&!S.cs.taskId)return;
   if(S.cs.actId&&S.cs.splitStart)finishSplit(false);
   S.cs.actId=id;S.cs.taskId=null;S.cs.splitStart=Date.now();
-  save();renderTracker();
+  save();renderAll();
 }
 function selectTask(actId,taskId){
-  if(!S.cs.running)return;
+  if(!S.cs.running){S.cs.running=true;S.cs.startTs=Date.now();}
   if(S.cs.actId===actId&&S.cs.taskId===taskId)return;
   if(S.cs.actId&&S.cs.splitStart)finishSplit(false);
   S.cs.actId=actId;S.cs.taskId=taskId;S.cs.splitStart=Date.now();
@@ -560,7 +563,7 @@ function renderCpick(cid,key,sel){
   var el=document.getElementById(cid);if(!el)return;
   el.innerHTML=COLORS.map(function(c){
     var isSel=c===sel;
-    return '<div class="csw'+(isSel?' sel':'')+'" style="background:'+c+'" data-c="'+c+'" data-k="'+key+'" data-cid="'+cid+'"></div>';
+    return '<div class="csw'+(isSel=' sel':'')+'" style="background:'+c+'" data-c="'+c+'" data-k="'+key+'" data-cid="'+cid+'"></div>';
   }).join('');
 }
 function closeEdit(){document.getElementById('edit-modal').classList.remove('open');S.editingId=null;S.editTasks=[];}
